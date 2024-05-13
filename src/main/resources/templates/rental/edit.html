@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{common :: meta_header('貸出編集',~{::link},~{::script})}">
+    <title th:text="${title}+' | MTLibrary'"></title>
+    <link rel="stylesheet" th:href="@{/css/rental/add.css}" />
+    <script type="text/javascript" th:src="@{/js/rental/add.js}"></script>
+</head>
+
+<body>
+    <div class="contents">
+        <div th:replace="~{common :: main_sidebar}"></div>
+        <div class="main_contents">
+            <div th:replace="~{common :: header}"></div>
+            <div class="inner_contens">
+                <div class="page_title">貸出編集</div>
+                <div class="mb30 flexarea">
+                    <span class="text-red">＊は必須項目です</span>
+                    <span>
+                        <a th:href="@{/rental/index}" class="link">← 一覧へ戻る</a>
+                    </span>
+                </div>
+                <form id="rental_add_form" th:object="${rentalManageDto}" th:action="@{/rental/{id}/edit(id=*{id})}" method="post">
+                    <div class="mb30">
+                        <label class="input_title" for="employeeId">社員番号<span class="text-red asterisk">＊</span></label>
+                        <select id="employeeId" class="form_input" name="employeeId" required>
+                            <option value="">社員番号を選択</option>
+                            <option th:each="account : ${accounts}" th:value="${account.employeeId}"
+                                th:text="${account.employeeId + ' ' + account.name}"
+                                th:selected="${account.employeeId == rentalManageDto.employeeId}"></option>
+                        </select>
+                        <div class="error_msg" th:if="${#fields.hasErrors('employeeId')}" th:errors="*{employeeId}">
+                        </div>
+                    </div>
+                    <div class="mb30">
+                        <label class="input_title" for="expectedRentalOn">貸出予定日<span
+                                class="text-red asterisk">＊</span></label>
+                        <input type="date" id="expectedRentalOn" class="form_input" name="expectedRentalOn"
+                            th:value="${#dates.format(rentalManageDto.expectedRentalOn, ('yyyy-MM-dd'))}"
+                            placeholder="貸出予定日を入力" required>
+                        <div class="error_msg" th:if="${#fields.hasErrors('expectedRentalOn')}"
+                            th:errors="*{expectedRentalOn}"></div>
+                    </div>
+                    <div class="mb30">
+                        <label class="input_title" for="expectedReturnOn">返却予定日<span
+                                class="text-red asterisk">＊</span></label>
+                        <input type="date" id="expectedReturnOn" class="form_input" name="expectedReturnOn"
+                            th:value="${#dates.format(rentalManageDto.expectedReturnOn, ('yyyy-MM-dd'))}"
+                            placeholder="返却予定日を入力" required>
+                        <div class="error_msg" th:if="${#fields.hasErrors('expectedReturnOn')}"
+                            th:errors="*{expectedReturnOn}"></div>
+                    </div>
+                    <div class="mb30">
+                        <label class="input_title" for="stockMngNumber">在庫管理番号<span
+                                class="text-red asterisk">＊</span></label>
+                        <select id="stockMngNumber" class="form_input" name="stockId" required>
+                            <option value="">在庫管理番号を選択</option>
+                            <option th:each="stock : ${stockList}" th:value="${stock.id}"
+                                th:text="${stock.id + ' ' + stock.bookMst.title}"
+                                th:selected="${stock.id == rentalManageDto.stockId}"></option>
+                        </select>
+                        <div class="error_msg" th:if="${#fields.hasErrors('stockId')}" th:errors="*{stockId}"></div>
+                    </div>
+                    <div class="mb30">
+                        <label class="input_title" for="rentalStatus">貸出ステータス<span
+                                class="text-red asterisk">＊</span></label>
+                        <select id="rentalStatus" class="form_input" name="status" required>
+                            <option value="">ステータスを選択</option>
+                            <option th:each="status : ${rentalStatus}" th:value="${status.value}"
+                                th:text="${status.text}" th:selected="${status.value == rentalManageDto.status}">
+                            </option>
+                        </select>
+                        <div class="error_msg" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
+                    </div>
+                    <div class="btn_block">
+                        <button type="submit" id="submit_btn">変更</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{common :: footer}"></div>
+</body>
