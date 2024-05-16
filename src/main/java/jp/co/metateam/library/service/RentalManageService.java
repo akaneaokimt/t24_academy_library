@@ -116,14 +116,14 @@ public class RentalManageService {
 
         return rentalManage;
     }
-}
 
- /*if (account == null) {
- throw new Exception("Account not found.");
-}
-*/
+    public List<RentalManage> findByStockIdAndStatusIn(String Id, Long rentalId){
+        List<RentalManage> rentalAvailable = this.rentalManageRepository.findByStockIdAndStatusIn(Id,Long.valueOf(rentalId));
+        return rentalAvailable;  
+    }
+    public List<RentalManage> findByStockIdAndStatusIn(String Id){
+        List<RentalManage> rentalAvailable = this.rentalManageRepository.findByStockIdAndStatusIn(Id);
+        return rentalAvailable;  
 
-/*if (stock == null) {
-throw new Exception("Stock not found.");
+    }
 }
-*/

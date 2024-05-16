@@ -3,6 +3,7 @@ package jp.co.metateam.library.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
@@ -93,14 +94,24 @@ public class RentalManageController {
         //貸出登録画面に遷移
         return "rental/add";
     }
+
  
 
     @PostMapping("/rental/add")
-    public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra) {
+    public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra, Model model) {
         try {
+            String rentalDataerror = this.rentalCheck(rentalManageDto,rentalManageDto.getStockId());
+           
+            if(rentalDataerror != null){
+                result.addError(new FieldError("rentalManage","expectedRentalOn", rentalDataerror));
+            }
+            if(rentalDataerror != null){
+                result.addError(new FieldError("rentalManage","expectedReturnOn", rentalDataerror));
+            }
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
             }
+
              // 登録処理
              this.rentalManageService.save(rentalManageDto);
 
@@ -111,9 +122,37 @@ public class RentalManageController {
                 ra.addFlashAttribute("rentalManageDto", rentalManageDto);
                 ra.addFlashAttribute("org.springframework.validation.BindingResult.RentalManageDto", result);
     
-                return "redirect:/rental/add";
+                List<Account> accountList = this.accountService.findAll();
+                List<Stock> stockList = this.stockService.findStockAvailableAll();
+    
+                model.addAttribute("accounts", accountList);
+                model.addAttribute("stockList", stockList);
+                model.addAttribute("rentalStatus", RentalStatus.values());
+
+                return "/rental/add";
             }
+    }
+
+    
+    
+
+        public String rentalCheck(RentalManageDto rentalManageDto, String id) {
+            //貸出管理のDBから在庫管理番号に紐づくレコードのうちステータスが0,1のものを全件取得しリストの格納
+            List<RentalManage> rentalAvailable = this.rentalManageService.findByStockIdAndStatusIn(id);
+           
+            if(rentalAvailable != null){
+    
+            //取得したレコードが０件の場合、noならループ、yesなら終了
+            for (RentalManage List : rentalAvailable){
+                if (List.getExpectedRentalOn().before(rentalManageDto.getExpectedReturnOn()) && List.getExpectedReturnOn().after(rentalManageDto.getExpectedRentalOn())){
+                    return "この書籍は、入力された日付で貸出できません";    
+                }
+            }  
         }
+            return null;
+    }
+    
+
 
         @GetMapping("/rental/{id}/edit")
         public String edit(@PathVariable("id") String id, Model model) {
@@ -141,6 +180,7 @@ public class RentalManageController {
     
             return "rental/edit";
         }
+    
 
      @PostMapping("/rental/{id}/edit")
     public String update(@PathVariable("id") String id, @Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra, Model model) {
@@ -148,14 +188,23 @@ public class RentalManageController {
             
             RentalManage rentalManage = this.rentalManageService.findById(Long.valueOf(id));
             String validerror = rentalManageDto.isValidStatus(rentalManage.getStatus());
-            
+            String rentalDataerror = this.rentalCheck(rentalManageDto,rentalManage.getStock().getId(),Long.valueOf(id));
+
+             
             if(validerror != null){
                 result.addError(new FieldError("rentalManagedto","status", validerror));
             }
-            
+            if(rentalDataerror != null){
+                result.addError(new FieldError("rentalManagedto","expectedRentalOn", rentalDataerror));
+            }
+            if(rentalDataerror != null){
+                result.addError(new FieldError("rentalManagedto","expectedReturnOn", rentalDataerror));
+            }
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
             }
+            
+
             this.rentalManageService.update(Long.valueOf(id), rentalManageDto);
 
             return "redirect:/rental/index";
@@ -175,5 +224,45 @@ public class RentalManageController {
             return "rental/edit";
         }
     }
+    
+    public String rentalCheck (RentalManageDto rentalManageDto,String id, Long rentalId){
+        //貸出管理のDBから在庫管理番号に紐づくレコードのうちステータスが0,1のものを全件取得しリストの格納
+        List<RentalManage> rentalAvailable = this.rentalManageService.findByStockIdAndStatusIn(id,Long.valueOf(rentalId));
+       
+        if(rentalAvailable != null){
 
+        //取得したレコードが０件の場合、noならループ、yesなら終了
+        for (RentalManage List : rentalAvailable){
+            if (List.getExpectedRentalOn().before(rentalManageDto.getExpectedReturnOn()) && List.getExpectedReturnOn().after(rentalManageDto.getExpectedRentalOn())){
+                return "この書籍は、入力された日付で貸出できません";   
+            }
+        }
+      }
+        return null;
+    }
 }
+
+
+
+    
+    /*public String returnCheck (RentalManageDto rentalManageDto, String id, Long rentalId){
+        List<RentalManage> returnAvailable = this.rentalManageService.findByStockIdAndStatusIn(id,Long.valueOf(rentalId));
+       
+        if(returnAvailable != null){
+
+        for (RentalManage List : returnAvailable){
+            if (List.getExpectedRentalOn().after(rentalManageDto.getExpectedReturnOn())){
+                return "この書籍は、入力された返却予定日で返却できません";   
+            }
+        }
+    }
+
+
+    return null;
+ 
+    
+    
+  }
+}
+*/
+
