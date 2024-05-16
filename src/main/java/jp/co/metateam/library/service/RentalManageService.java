@@ -27,20 +27,19 @@ public class RentalManageService {
     private final RentalManageRepository rentalManageRepository;
     private final StockRepository stockRepository;
 
-     @Autowired
+    @Autowired
     public RentalManageService(
-        AccountRepository accountRepository,
-        RentalManageRepository rentalManageRepository,
-        StockRepository stockRepository
-    ) {
+            AccountRepository accountRepository,
+            RentalManageRepository rentalManageRepository,
+            StockRepository stockRepository) {
         this.accountRepository = accountRepository;
         this.rentalManageRepository = rentalManageRepository;
         this.stockRepository = stockRepository;
     }
 
     @Transactional
-    public List <RentalManage> findAll() {
-        List <RentalManage> rentalManageList = this.rentalManageRepository.findAll();
+    public List<RentalManage> findAll() {
+        List<RentalManage> rentalManageList = this.rentalManageRepository.findAll();
 
         return rentalManageList;
     }
@@ -50,7 +49,7 @@ public class RentalManageService {
         return this.rentalManageRepository.findById(id).orElse(null);
     }
 
-    @Transactional 
+    @Transactional
     public void save(RentalManageDto rentalManageDto) throws Exception {
         try {
             Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
@@ -79,8 +78,8 @@ public class RentalManageService {
         }
     }
 
-    @Transactional 
-    public void update(Long id,RentalManageDto rentalManageDto) throws Exception {
+    @Transactional
+    public void update(Long id, RentalManageDto rentalManageDto) throws Exception {
         try {
             Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
             Stock stock = this.stockRepository.findById(rentalManageDto.getStockId()).orElse(null);
@@ -102,10 +101,9 @@ public class RentalManageService {
         }
     }
 
-
     private RentalManage setRentalStatusDate(RentalManage rentalManage, Integer status) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        
+
         if (status == RentalStatus.RENTAlING.getValue()) {
             rentalManage.setRentaledAt(timestamp);
         } else if (status == RentalStatus.RETURNED.getValue()) {
@@ -117,13 +115,15 @@ public class RentalManageService {
         return rentalManage;
     }
 
-    public List<RentalManage> findByStockIdAndStatusIn(String Id, Long rentalId){
-        List<RentalManage> rentalAvailable = this.rentalManageRepository.findByStockIdAndStatusIn(Id,Long.valueOf(rentalId));
-        return rentalAvailable;  
+    public List<RentalManage> findByStockIdAndStatusIn(String Id, Long rentalId) {
+        List<RentalManage> rentalAvailable = this.rentalManageRepository.findByStockIdAndStatusIn(Id,
+                Long.valueOf(rentalId));
+        return rentalAvailable;
     }
-    public List<RentalManage> findByStockIdAndStatusIn(String Id){
+
+    public List<RentalManage> findByStockIdAndStatusIn(String Id) {
         List<RentalManage> rentalAvailable = this.rentalManageRepository.findByStockIdAndStatusIn(Id);
-        return rentalAvailable;  
+        return rentalAvailable;
 
     }
 }
